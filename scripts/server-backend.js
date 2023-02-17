@@ -357,7 +357,7 @@ function startBackendServer(port) {
             try {
                 if ((accessToken === "" || accessToken == content["at"]) && token && userId) {
                     whiteboardId = content["wid"];
-                    await axios.post("https://dev.coursepage.com/api/v1/conference/validate", {
+                    await axios.post("https://coursepage.com/api/v1/conference/validate", {
                         name: whiteboardId,
                         token: token,
                         userId: userId,

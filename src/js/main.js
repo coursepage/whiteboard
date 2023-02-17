@@ -10,6 +10,7 @@ import InfoService from "./services/InfoService";
 import { getSubDir } from "./utils";
 import ConfigService from "./services/ConfigService";
 import { v4 as uuidv4 } from "uuid";
+import Cookies from "js-cookie";
 
 const pdfjsLib = require("pdfjs-dist");
 
@@ -37,7 +38,8 @@ if (urlParams.get("whiteboardid") !== whiteboardId) {
 const myUsername = urlParams.get("username") || "unknown" + (Math.random() + "").substring(2, 6);
 const accessToken = urlParams.get("accesstoken") || "";
 const copyfromwid = urlParams.get("copyfromwid") || "";
-
+const token = Cookies.get("token");
+const userId = Cookies.get("userId");
 // Custom Html Title
 const title = urlParams.get("title");
 if (title) {
@@ -82,6 +84,8 @@ function main() {
         });
 
         signaling_socket.emit("joinWhiteboard", {
+            token: token,
+            userId: userId,
             wid: whiteboardId,
             at: accessToken,
             windowWidthHeight: { w: $(window).width(), h: $(window).height() },

@@ -4,6 +4,7 @@ const config = require("./config/config");
 const ReadOnlyBackendService = require("./services/ReadOnlyBackendService");
 const WhiteboardInfoBackendService = require("./services/WhiteboardInfoBackendService");
 const { getSafeFilePath } = require("./utils");
+const axios = require("axios");
 
 function startBackendServer(port) {
     var fs = require("fs-extra");
@@ -344,24 +345,33 @@ function startBackendServer(port) {
             }
         });
 
-        socket.on("joinWhiteboard", function (content) {
+        socket.on("joinWhiteboard", async function (content) {
             content = escapeAllContentStrings(content);
-            if (accessToken === "" || accessToken == content["at"]) {
-                whiteboardId = content["wid"];
-
-                socket.emit("whiteboardConfig", {
-                    common: config.frontend,
-                    whiteboardSpecific: {
-                        correspondingReadOnlyWid:
-                            ReadOnlyBackendService.getReadOnlyId(whiteboardId),
-                        isReadOnly: ReadOnlyBackendService.isReadOnly(whiteboardId),
-                    },
-                });
-
-                socket.join(whiteboardId); //Joins room name=wid
-                const screenResolution = content["windowWidthHeight"];
-                WhiteboardInfoBackendService.join(socket.id, whiteboardId, screenResolution);
-            } else {
+            const token = content["token"];
+            const userId = content["userId"];
+            try {
+                if ((accessToken === "" || accessToken == content["at"]) && token && userId) {
+                    whiteboardId = content["wid"];
+                    await axios.post("https://dev.coursepage.com/api/v1/conference/validate", {
+                        name: whiteboardId,
+                        token: token,
+                        userId: userId,
+                    });
+                    socket.emit("whiteboardConfig", {
+                        common: config.frontend,
+                        whiteboardSpecific: {
+                            correspondingReadOnlyWid:
+                                ReadOnlyBackendService.getReadOnlyId(whiteboardId),
+                            isReadOnly: ReadOnlyBackendService.isReadOnly(whiteboardId),
+                        },
+                    });
+                    socket.join(whiteboardId); //Joins room name=wid
+                    const screenResolution = content["windowWidthHeight"];
+                    WhiteboardInfoBackendService.join(socket.id, whiteboardId, screenResolution);
+                } else {
+                    throw new Error("wrongAccessToken");
+                }
+            } catch (err) {
                 socket.emit("wrongAccessToken", true);
             }
         });

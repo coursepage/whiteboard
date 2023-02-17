@@ -5,7 +5,12 @@ const ReadOnlyBackendService = require("./services/ReadOnlyBackendService");
 const WhiteboardInfoBackendService = require("./services/WhiteboardInfoBackendService");
 const { getSafeFilePath } = require("./utils");
 const axios = require("axios");
+const fs = require("fs");
 
+const https_options = {
+    key: fs.readFileSync(path.join(__dirname, "/server.key")),
+    cert: fs.readFileSync(path.join(__dirname, "/server.cert")),
+};
 function startBackendServer(port) {
     var fs = require("fs-extra");
     var express = require("express");
@@ -22,8 +27,8 @@ function startBackendServer(port) {
 
     var app = express();
 
-    var server = require("http").Server(app);
-    server.listen(port);
+    var server = require("https").createServer(https_options, app);
+    server.listen(port, process.env["HOST"] || undefined);
     var io = require("socket.io")(server, { path: "/ws-api" });
     WhiteboardInfoBackendService.start(io);
 

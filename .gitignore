@@ -1,5 +1,6 @@
 /config.run.yml
-
+/scripts/server.cert
+/scripts/server.key
 # Logs
 logs
 *.log
